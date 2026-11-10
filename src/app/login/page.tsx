@@ -61,6 +61,34 @@ export default async function LoginPage({
               </p>
             </form>
 
+            {(process.env.NEXT_PUBLIC_SITE_URL ?? '').startsWith('http://localhost') || process.env.NEXT_PUBLIC_ENABLE_EMAIL_LOGIN === 'true' ? (
+              <form action="/auth/password" method="post" className="mt-6 space-y-3 border-t border-[rgb(var(--gloss)/0.6)] pt-6">
+                <p className="text-xs uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+                  Course test account
+                </p>
+                <input
+                  name="email"
+                  type="email"
+                  required
+                  placeholder="Email"
+                  className="w-full rounded-2xl border border-[rgb(var(--gloss)/0.6)] bg-[rgb(var(--panel)/0.9)] px-4 py-3 text-sm"
+                />
+                <input
+                  name="password"
+                  type="password"
+                  required
+                  placeholder="Password"
+                  className="w-full rounded-2xl border border-[rgb(var(--gloss)/0.6)] bg-[rgb(var(--panel)/0.9)] px-4 py-3 text-sm"
+                />
+                <button
+                  type="submit"
+                  className="w-full rounded-2xl border border-[rgb(var(--gloss)/0.6)] px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em]"
+                >
+                  Sign in with email
+                </button>
+              </form>
+            ) : null}
+
           </div>
         </div>
       </div>

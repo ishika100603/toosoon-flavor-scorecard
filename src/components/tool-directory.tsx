@@ -111,6 +111,11 @@ const DEPRECATED_TOOLS: { name: string; path: string }[] = [
 
 const GLOBAL_VIEWS: { name: string; href: string; blurb: string }[] = [
   {
+    name: 'Flavor scorecard',
+    href: '/flavor-scorecard',
+    blurb: 'Every flavor ranked by how real voters rated its captions.',
+  },
+  {
     name: 'Run archive',
     href: '/runs',
     blurb: 'All runs, all flavors, forward and reverse.',

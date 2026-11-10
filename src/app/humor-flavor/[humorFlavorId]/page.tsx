@@ -1,6 +1,7 @@
 import { flavorPageMetadata } from '@/utils/page-metadata'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
+import { Suspense } from 'react'
 
 import AppHeader from '@/components/app-header'
 import { createClient } from '@/utils/supabase/server'
@@ -12,6 +13,7 @@ import {
 } from './actions'
 import DuplicateFlavorModal from './duplicate-flavor-modal'
 import FlavorFavorite from './flavor-favorite'
+import FlavorScorecardPanel from './flavor-scorecard-panel'
 import HumorFlavorStepList from './humor-flavor-step-list'
 
 type FlavorStepType = {
@@ -384,6 +386,16 @@ export default async function HumorFlavorPage({
         </div>
 
         <div className="mt-6 grid gap-4">
+          {/* How real voters rated this flavor's captions (loads on its own) */}
+          <Suspense
+            fallback={
+              <section className="rounded-xl border border-[rgb(var(--primary)/0.35)] p-4 text-sm text-[rgb(var(--muted))]">
+                Loading the scorecard…
+              </section>
+            }
+          >
+            <FlavorScorecardPanel flavorId={flavor.id} />
+          </Suspense>
           {flavorDetailsSection}
           <FlavorFavorite
             flavorId={flavor.id}

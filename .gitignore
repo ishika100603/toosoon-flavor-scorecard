@@ -154,3 +154,6 @@ scripts/test-student-brain-output.*
 # local env (contains secrets)
 .env
 .env.bak
+
+# local Next.js env files
+.env*.local
