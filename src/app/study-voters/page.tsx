@@ -157,18 +157,18 @@ export default async function StudyVotersPage({
             </div>
 
             <h2 className="mt-8 text-lg font-semibold">
-              Each flavor&apos;s 👍 rate, with and without the flagged voters
-              <InfoTip text="👍 rate here = share of study votes that were &quot;funny&quot; or &quot;very funny&quot;. Flavors with 200+ study votes, biggest difference first." />
+              How each flavor&apos;s 👍 rate changes when flagged voters are removed
+              <InfoTip text="👍 rate = share of study votes that were &quot;funny&quot; or &quot;very funny&quot;. Before counts every voter; after leaves out the flagged ones. Flavors with 200+ study votes, biggest change first." />
             </h2>
             <div className={box}>
               <table className="w-full min-w-[560px] text-left text-sm">
                 <thead className="border-b border-[rgb(var(--gloss)/0.6)] text-xs text-[rgb(var(--muted))] dark:border-[rgb(var(--gloss)/0.15)]">
                   <tr>
                     <th className={th}>Flavor</th>
-                    <th className={th}>All votes</th>
-                    <th className={th}>Flagged voters removed</th>
-                    <th className={th}>Difference</th>
-                    <th className={th}>Votes left</th>
+                    <th className={th}>👍 rate before</th>
+                    <th className={th}>👍 rate after removing flagged voters</th>
+                    <th className={th}>Change</th>
+                    <th className={th}>Votes kept</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -184,7 +184,7 @@ export default async function StudyVotersPage({
                         <td className={td}>{pct(f.rate)}</td>
                         <td className={`${td} font-semibold`}>{pct(f.clean_rate)}</td>
                         <td className={`${td} ${change && change < 0 ? 'text-red-700 dark:text-red-300' : change && change > 0 ? 'text-emerald-700 dark:text-emerald-300' : ''}`}>
-                          {change == null ? '–' : `${change > 0 ? '+' : ''}${change} pts`}
+                          {change == null ? '–' : `${change > 0 ? '+' : ''}${change} points`}
                         </td>
                         <td className={`${td} text-[rgb(var(--muted))]`}>
                           {fmtNumber(f.clean_votes)} of {fmtNumber(f.votes)}
