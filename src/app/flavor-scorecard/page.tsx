@@ -101,26 +101,26 @@ export default async function FlavorScorecardPage({
           <table className="w-full min-w-[860px] text-left text-sm">
             <thead className="border-b border-[rgb(var(--gloss)/0.6)] text-xs text-[rgb(var(--muted))] dark:border-[rgb(var(--gloss)/0.15)]">
               <tr>
-                <th className="px-4 py-2 font-medium">#</th>
-                <th className="px-4 py-2 font-medium">Flavor</th>
-                <th className="w-48 px-4 py-2 font-medium">
+                <th className="whitespace-nowrap px-4 py-2 font-medium">#</th>
+                <th className="whitespace-nowrap px-4 py-2 font-medium">Flavor</th>
+                <th className="w-48 whitespace-nowrap px-4 py-2 font-medium">
                   👍 rate
                   <InfoTip text={`Share of votes on this flavor's captions that were thumbs up. The black tick is the average across all flavors${average != null ? ` (${pct(average)})` : ''}.`} />
                 </th>
-                <th className="px-4 py-2 font-medium">Votes</th>
-                <th className="px-4 py-2 font-medium">
+                <th className="whitespace-nowrap px-4 py-2 font-medium">Votes</th>
+                <th className="whitespace-nowrap px-4 py-2 font-medium">
                   Captions voted
                   <InfoTip text="How many of the captions this flavor wrote got at least one vote. A flavor can write many more captions than people ever vote on." />
                 </th>
-                <th className="px-4 py-2 font-medium">
+                <th className="whitespace-nowrap px-4 py-2 font-medium">
                   Audience
                   <InfoTip text="Do regular voters (10+ votes on this flavor) agree? Fans liked 70%+ of its captions, critics 30% or less. Divided means at least 1 in 5 regulars is a fan and 1 in 5 a critic, as when one group (say, grad students) gets the jokes and another doesn't." />
                 </th>
-                <th className="px-4 py-2 font-medium">
+                <th className="whitespace-nowrap px-4 py-2 font-medium">
                   Trust
                   <InfoTip text="How many votes the rate is based on. High: 1,000+. Medium: 200–999. Low: under 200. A high rate with Medium or Low trust can be luck." />
                 </th>
-                <th className="px-4 py-2 font-medium">Last vote</th>
+                <th className="whitespace-nowrap px-4 py-2 font-medium">Last vote</th>
               </tr>
             </thead>
             <tbody>

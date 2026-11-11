@@ -70,7 +70,7 @@ export default async function StudyVotersPage({
     `/study-voters?fast=${q.fast ?? fast}&same=${q.same ?? same}&rush=${q.rush ?? rush}`
   const box =
     'mt-3 overflow-x-auto rounded-xl border border-[rgb(var(--gloss)/0.6)] bg-[rgb(var(--panel)/0.6)] dark:border-[rgb(var(--gloss)/0.15)] dark:bg-[rgb(var(--panel)/0.1)]'
-  const th = 'px-4 py-2 font-medium'
+  const th = 'whitespace-nowrap px-4 py-2 font-medium'
   const td = 'px-4 py-2.5 tabular-nums'
   const row = 'border-b border-[rgb(var(--gloss)/0.4)] last:border-0 dark:border-[rgb(var(--gloss)/0.1)]'
 
