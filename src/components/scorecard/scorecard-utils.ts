@@ -75,7 +75,7 @@ export function likesChange(before: number | null, after: number | null) {
   const change = Math.round(Number(after) * 100) - Math.round(Number(before) * 100)
   return {
     change,
-    text: change === 0 ? 'No change' : `${Math.abs(change)} ${change > 0 ? 'more' : 'fewer'} likes per 100 votes`,
+    text: change === 0 ? '0' : `${change > 0 ? '+' : '−'}${Math.abs(change)}`,
     className: change < 0 ? 'text-red-700 dark:text-red-300' : change > 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-[rgb(var(--muted))]',
   }
 }

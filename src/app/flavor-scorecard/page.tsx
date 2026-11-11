@@ -116,7 +116,10 @@ export default async function FlavorScorecardPage({
                   Without suspicious voters
                   <InfoTip text="The 👍 rate after leaving out votes from study voters who voted too fast, rushed part of a study, or voted from a shared browser session. 'Who counts as a suspicious voter' at the top shows them and lets you change the rules." />
                 </th>
-                <th className="whitespace-nowrap px-4 py-2 font-medium">Change</th>
+                <th className="whitespace-nowrap px-4 py-2 font-medium">
+                  Change in likes per 100 votes
+                  <InfoTip text="A 35% 👍 rate means 35 likes for every 100 votes. If it falls to 29% without suspicious voters, that's 6 fewer likes per 100 votes, shown as −6." />
+                </th>
                 <th className="whitespace-nowrap px-4 py-2 font-medium">Votes</th>
                 <th className="whitespace-nowrap px-4 py-2 font-medium">
                   Captions voted
@@ -153,7 +156,7 @@ export default async function FlavorScorecardPage({
                       </span>
                     </td>
                     <td className="px-4 py-3 font-semibold tabular-nums">{pct(r.clean_up_rate)}</td>
-                    <td className={`whitespace-nowrap px-4 py-3 text-xs ${ch?.className ?? ''}`}>{ch?.text ?? '–'}</td>
+                    <td className={`whitespace-nowrap px-4 py-3 font-semibold tabular-nums ${ch?.className ?? ''}`}>{ch?.text ?? '–'}</td>
                     <td className="px-4 py-3 tabular-nums">{fmtNumber(r.votes)}</td>
                     <td className="whitespace-nowrap px-4 py-3 tabular-nums">
                       {fmtNumber(r.voted_captions)} <span className="text-[rgb(var(--muted))]">of {fmtNumber(r.caption_count)}</span>
