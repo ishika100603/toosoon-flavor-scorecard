@@ -117,8 +117,8 @@ export default async function FlavorScorecardPage({
                   <InfoTip text="The 👍 rate after leaving out votes from study voters who voted too fast, rushed part of a study, or voted from a shared browser session. 'Who counts as a suspicious voter' at the top shows them and lets you change the rules." />
                 </th>
                 <th className="whitespace-nowrap px-4 py-2 font-medium">
-                  Change in likes per 100 votes
-                  <InfoTip text="A 35% 👍 rate means 35 likes for every 100 votes. If it falls to 29% without suspicious voters, that's 6 fewer likes per 100 votes, shown as −6." />
+                  Change
+                  <InfoTip text="How much the 👍 rate moves without suspicious voters: 35% → 29% shows as −6%." />
                 </th>
                 <th className="whitespace-nowrap px-4 py-2 font-medium">Votes</th>
                 <th className="whitespace-nowrap px-4 py-2 font-medium">
