@@ -11,7 +11,7 @@ import { createClient } from '@/utils/supabase/server'
 export const metadata = pageMetadata('Flavor scorecard')
 
 const MIN_OPTIONS = [0, 50, 200, 1000]
-const SORTS = { rate: '👍 rate', clean: 'Without suspicious voters', votes: 'Most votes', recent: 'Newest' } as const
+const SORTS = { rate: 'All voters', clean: 'Without suspicious voters', votes: 'Most votes', recent: 'Newest' } as const
 
 // Every flavor ranked by how real voters rated its captions.
 export default async function FlavorScorecardPage({
@@ -91,7 +91,7 @@ export default async function FlavorScorecardPage({
             </span>
           </div>
           <div className="flex items-center">
-            <span className={label}>Sort by</span>
+            <span className={label}>Sort by 👍 rate of</span>
             <span className={group}>
               {(Object.keys(SORTS) as (keyof typeof SORTS)[]).map((s) => (
                 <Link key={s} href={`/flavor-scorecard?min=${min}&sort=${s}&${ruleQuery}`} className={chip(s === sort)}>
