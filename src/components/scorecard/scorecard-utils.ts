@@ -10,6 +10,9 @@ export type ScorecardRow = {
   down: number
   up_rate: number | null
   last_vote: string | null
+  regulars: number
+  fans: number
+  critics: number
 }
 
 export type ScorecardCaption = {
@@ -48,3 +51,17 @@ export const fmtDay = (iso: string | null) =>
 // Weeks come back as UTC midnight; show them in UTC so the date doesn't slip a day
 export const fmtWeek = (iso: string) =>
   new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(iso))
+
+// Whether a flavor splits its regular voters (10+ votes on it). Different
+// audiences can like different flavors; the course data has no audience info,
+// so this reads the split from the votes: fans liked 70%+, critics 30% or less.
+export function audience(r: { regulars: number; fans: number; critics: number }) {
+  const regulars = Number(r.regulars)
+  const fans = Number(r.fans)
+  const critics = Number(r.critics)
+  if (regulars < 20) return { label: 'Too few regulars', className: 'text-[rgb(var(--muted))]' }
+  if (Math.min(fans, critics) / regulars >= 0.2) return { label: 'Divided', className: 'text-amber-700 dark:text-amber-300' }
+  return fans >= critics
+    ? { label: 'Mostly fans', className: 'text-emerald-700 dark:text-emerald-300' }
+    : { label: 'Mostly critics', className: 'text-red-700 dark:text-red-300' }
+}

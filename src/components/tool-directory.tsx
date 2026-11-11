@@ -109,7 +109,8 @@ const DEPRECATED_TOOLS: { name: string; path: string }[] = [
   { name: 'The Chiltrix', path: 'chiltrix' },
 ]
 
-const GLOBAL_VIEWS: { name: string; href: string; blurb: string }[] = [
+// How real voters rated the flavors (the Flavor Scorecard project)
+const VOTING_VIEWS: { name: string; href: string; blurb: string }[] = [
   {
     name: 'Flavor scorecard',
     href: '/flavor-scorecard',
@@ -120,6 +121,9 @@ const GLOBAL_VIEWS: { name: string; href: string; blurb: string }[] = [
     href: '/study-voters',
     blurb: 'Study voters who answer too fast or the same every time, and how much they skew each flavor.',
   },
+]
+
+const GLOBAL_VIEWS: { name: string; href: string; blurb: string }[] = [
   {
     name: 'Run archive',
     href: '/runs',
@@ -309,6 +313,19 @@ export function GlobalViewsMenu() {
   return (
     <nav className="space-y-1">
       <h3 className="mb-2 text-xs font-semibold text-[rgb(var(--muted))]">
+        Voting results
+      </h3>
+      {VOTING_VIEWS.map((view) => (
+        <Link
+          key={view.href}
+          href={view.href}
+          title={view.blurb}
+          className="block rounded-md px-1.5 py-1 text-[13px] font-medium text-[rgb(var(--ink))] transition hover:bg-[rgb(var(--panel)/0.8)] hover:text-[rgb(var(--accent-strong))] dark:hover:bg-[rgb(var(--panel)/0.15)]"
+        >
+          {view.name}
+        </Link>
+      ))}
+      <h3 className="mb-2 mt-5 text-xs font-semibold text-[rgb(var(--muted))]">
         Other tools
       </h3>
       {GLOBAL_VIEWS.map((view) => (

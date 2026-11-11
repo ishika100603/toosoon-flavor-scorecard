@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
 import AppHeader from '@/components/app-header'
+import InfoTip from '@/components/scorecard/info-tip'
 import { fmtNumber, pct } from '@/components/scorecard/scorecard-utils'
 import { pageMetadata } from '@/utils/page-metadata'
 import { createClient } from '@/utils/supabase/server'
@@ -61,8 +62,12 @@ export default async function StudyVotersPage({
   const { data, error } = await supabase.rpc('study_voter_check', { p_min_votes: 30, p_fast_ms: fast, p_same_share: same || 2, p_rush_share: rush })
   const r = data as Check | null
 
+  const group = 'inline-flex rounded-lg border border-[rgb(var(--gloss)/0.8)] bg-[rgb(var(--panel)/0.6)] p-0.5 dark:border-[rgb(var(--gloss)/0.2)]'
   const chip = (on: boolean) =>
-    `rounded-lg px-2.5 py-1 text-sm ${on ? 'bg-[rgb(var(--primary))] text-[rgb(var(--on-primary))]' : 'text-[rgb(var(--muted))] hover:text-[rgb(var(--ink))]'}`
+    `rounded-md px-2.5 py-1 text-sm ${on ? 'bg-[rgb(var(--primary))] text-[rgb(var(--on-primary))]' : 'text-[rgb(var(--muted))] hover:text-[rgb(var(--ink))]'}`
+  const label = 'mr-2 text-xs text-[rgb(var(--muted))]'
+  const href = (q: { fast?: number; same?: number; rush?: number }) =>
+    `/study-voters?fast=${q.fast ?? fast}&same=${q.same ?? same}&rush=${q.rush ?? rush}`
   const box =
     'mt-3 overflow-x-auto rounded-xl border border-[rgb(var(--gloss)/0.6)] bg-[rgb(var(--panel)/0.6)] dark:border-[rgb(var(--gloss)/0.15)] dark:bg-[rgb(var(--panel)/0.1)]'
   const th = 'px-4 py-2 font-medium'
@@ -79,56 +84,58 @@ export default async function StudyVotersPage({
             ← Flavor scorecard
           </Link>
         </div>
-        <ul className="mt-2 list-disc space-y-0.5 pl-5 text-sm text-[rgb(var(--muted))]">
-          <li>Humor-study voters with 30+ votes are checked for speed (and answers, if switched on).</li>
-          <li>
-            <b>Too fast:</b> their typical vote takes under {secs(fast)}, too quick to read the caption.
-          </li>
-          {rush ? (
-            <li>
-              <b>Rushes sometimes:</b> normally takes {secs(fast * 2)}+ per vote, but {Math.round(rush * 100)}%+ of their votes take under{' '}
-              {secs(fast)}.
-            </li>
-          ) : null}
-          {same ? (
-            <li>
-              <b>Same answer (optional):</b> {Math.round(same * 100)}%+ of their votes are one answer. Off by default, since liking or
-              disliking everything can be a real taste.
-            </li>
-          ) : null}
-          <li>
-            <b>Shared session:</b> the same browser session also voted from another account, a sign of one person using several
-            accounts.
-          </li>
-          <li>👍 rate here = share of study votes that were &quot;funny&quot; or &quot;very funny&quot;.</li>
-        </ul>
+        <p className="mt-1 text-sm text-[rgb(var(--muted))]">
+          Finds humor-study voters whose votes look careless, and shows how much they change each flavor&apos;s result. Voters with 30+
+          study votes are checked.
+        </p>
 
-        <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2">
-          <div className="flex items-center gap-1">
-            <span className="mr-1 text-xs font-medium text-[rgb(var(--muted))]">Too fast under</span>
-            {FAST.map((f) => (
-              <Link key={f} href={`/study-voters?fast=${f}&same=${same}&rush=${rush}`} className={chip(f === fast)}>
-                {secs(f)}
-              </Link>
-            ))}
+        <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
+          <span className="text-xs font-semibold text-[rgb(var(--muted))]">Flag a voter when:</span>
+          <div className="flex items-center">
+            <span className={label}>
+              Typical vote is under
+              <InfoTip text="Too fast: half of this voter's votes take less than this. Nobody can read a caption and judge it that quickly." />
+            </span>
+            <span className={group}>
+              {FAST.map((f) => (
+                <Link key={f} href={href({ fast: f })} className={chip(f === fast)}>
+                  {secs(f)}
+                </Link>
+              ))}
+            </span>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="mr-1 text-xs font-medium text-[rgb(var(--muted))]">Rushes sometimes</span>
-            {RUSH.map((x) => (
-              <Link key={x} href={`/study-voters?fast=${fast}&same=${same}&rush=${x}`} className={chip(x === rush)}>
-                {x ? `${Math.round(x * 100)}%+` : 'Off'}
-              </Link>
-            ))}
+          <div className="flex items-center">
+            <span className={label}>
+              Rushed votes are
+              <InfoTip
+                text={`Rushes sometimes: the voter normally takes ${secs(fast * 2)} or more, but this share of their votes took under ${secs(fast)}. Catches people who read most of the time but race through part of a study.`}
+              />
+            </span>
+            <span className={group}>
+              {RUSH.map((x) => (
+                <Link key={x} href={href({ rush: x })} className={chip(x === rush)}>
+                  {x ? `${Math.round(x * 100)}%+` : 'Off'}
+                </Link>
+              ))}
+            </span>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="mr-1 text-xs font-medium text-[rgb(var(--muted))]">Also flag same answer</span>
-            {SAME.map((s) => (
-              <Link key={s} href={`/study-voters?fast=${fast}&same=${s}&rush=${rush}`} className={chip(s === same)}>
-                {s ? `${Math.round(s * 100)}%+` : 'Off'}
-              </Link>
-            ))}
+          <div className="flex items-center">
+            <span className={label}>
+              Same answer on
+              <InfoTip text="Off by default: liking or disliking almost everything can be a real taste, so this alone isn't proof of cheating." />
+            </span>
+            <span className={group}>
+              {SAME.map((x) => (
+                <Link key={x} href={href({ same: x })} className={chip(x === same)}>
+                  {x ? `${Math.round(x * 100)}%+` : 'Off'}
+                </Link>
+              ))}
+            </span>
           </div>
         </div>
+        <p className="mt-2 text-xs text-[rgb(var(--muted))]">
+          Always flagged: accounts that voted from the same browser session as another account.
+        </p>
 
         {error ? (
           <p className="mt-6 rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
@@ -136,32 +143,32 @@ export default async function StudyVotersPage({
           </p>
         ) : r ? (
           <>
-            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
               {[
-                [`${fmtNumber(r.flagged)} of ${fmtNumber(r.judged)}`, 'voters flagged'],
-                [pct(r.votes_total ? r.votes_flagged / r.votes_total : null), `of study votes (${fmtNumber(r.votes_flagged)}) come from them`],
-                same
-                  ? [fmtNumber(r.voters.filter((v) => v.too_fast && v.same_answer).length), 'voters are both too fast and same answer']
-                  : [fmtNumber(r.shared), 'accounts share a browser session with another account'],
-              ].map(([n, label]) => (
-                <div key={label} className="rounded-xl border border-[rgb(var(--gloss)/0.6)] bg-[rgb(var(--panel)/0.6)] p-4 dark:border-[rgb(var(--gloss)/0.15)] dark:bg-[rgb(var(--panel)/0.1)]">
+                [`${fmtNumber(r.flagged)} voters`, `flagged, out of ${fmtNumber(r.judged)} checked`],
+                [pct(r.votes_total ? r.votes_flagged / r.votes_total : null), `of all study votes (${fmtNumber(r.votes_flagged)}) were cast by them`],
+                [`${fmtNumber(r.shared)} accounts`, 'voted from the same browser session as another account'],
+              ].map(([n, sub]) => (
+                <div key={sub} className="rounded-xl border border-[rgb(var(--gloss)/0.6)] bg-[rgb(var(--panel)/0.6)] p-4 dark:border-[rgb(var(--gloss)/0.15)] dark:bg-[rgb(var(--panel)/0.1)]">
                   <p className="text-2xl font-semibold tabular-nums">{n}</p>
-                  <p className="text-xs text-[rgb(var(--muted))]">{label}</p>
+                  <p className="text-xs text-[rgb(var(--muted))]">{sub}</p>
                 </div>
               ))}
             </div>
 
-            <h2 className="mt-8 text-lg font-semibold">How they change each flavor</h2>
-            <p className="text-sm text-[rgb(var(--muted))]">Flavors with 200+ study votes, biggest change first.</p>
+            <h2 className="mt-8 text-lg font-semibold">
+              Each flavor&apos;s 👍 rate, with and without the flagged voters
+              <InfoTip text="👍 rate here = share of study votes that were &quot;funny&quot; or &quot;very funny&quot;. Flavors with 200+ study votes, biggest difference first." />
+            </h2>
             <div className={box}>
               <table className="w-full min-w-[560px] text-left text-sm">
                 <thead className="border-b border-[rgb(var(--gloss)/0.6)] text-xs text-[rgb(var(--muted))] dark:border-[rgb(var(--gloss)/0.15)]">
                   <tr>
                     <th className={th}>Flavor</th>
-                    <th className={th}>👍 rate, all voters</th>
-                    <th className={th}>Without flagged</th>
-                    <th className={th}>Change</th>
-                    <th className={th}>Votes kept</th>
+                    <th className={th}>All votes</th>
+                    <th className={th}>Flagged voters removed</th>
+                    <th className={th}>Difference</th>
+                    <th className={th}>Votes left</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -189,21 +196,21 @@ export default async function StudyVotersPage({
               </table>
             </div>
 
-            <h2 className="mt-8 text-lg font-semibold">Flagged voters</h2>
+            <h2 className="mt-8 text-lg font-semibold">Who was flagged, and why</h2>
             <p className="text-sm text-[rgb(var(--muted))]">
-              Shown by the start of their ID. Most votes first.
+              Voters are shown by the start of their ID. Most votes first.
               {r.voters.length > SHOWN ? ` Top ${SHOWN} of ${fmtNumber(r.voters.length)}.` : ''}
             </p>
             <div className={box}>
               <table className="w-full min-w-[640px] text-left text-sm">
                 <thead className="border-b border-[rgb(var(--gloss)/0.6)] text-xs text-[rgb(var(--muted))] dark:border-[rgb(var(--gloss)/0.15)]">
                   <tr>
-                    <th className={th}>Voter</th>
-                    <th className={th}>Votes</th>
+                    <th className={th}>Voter ID</th>
+                    <th className={th}>Study votes</th>
                     <th className={th}>Studies</th>
                     <th className={th}>Typical time per vote</th>
                     <th className={th}>Most common answer</th>
-                    <th className={th}>Why</th>
+                    <th className={th}>Reason</th>
                   </tr>
                 </thead>
                 <tbody>

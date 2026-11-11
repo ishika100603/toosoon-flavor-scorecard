@@ -1,5 +1,6 @@
 import Link from 'next/link'
 
+import InfoTip from '@/components/scorecard/info-tip'
 import RateBar from '@/components/scorecard/rate-bar'
 import { confidence, fmtNumber, fmtWeek, pct, type ScorecardCaption, type ScorecardDetail } from '@/components/scorecard/scorecard-utils'
 import { createClient } from '@/utils/supabase/server'
@@ -117,8 +118,8 @@ export default async function FlavorScorecardPanel({ flavorId }: { flavorId: num
               <RateBar rate={rate} />
               <p className="text-sm text-[rgb(var(--muted))]">
                 {fmtNumber(votes)} votes · Trust:{' '}
-                <span className={`font-medium ${c.className}`}>{c.label}</span>{' '}
-                <span className="text-xs">({c.label === 'High' ? '1,000+ votes' : c.label === 'Medium' ? '200–999 votes, could be luck' : 'under 200 votes, likely luck'})</span>
+                <span className={`font-medium ${c.className}`}>{c.label}</span>
+                <InfoTip text="How many votes the rate is based on. High: 1,000+. Medium: 200–999. Low: under 200. A high rate with Medium or Low trust can be luck." />
               </p>
             </div>
           </div>

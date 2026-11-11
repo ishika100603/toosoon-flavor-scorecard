@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation'
 
 import AppHeader from '@/components/app-header'
 import RateBar from '@/components/scorecard/rate-bar'
-import { confidence, fmtDay, fmtNumber, pct, type ScorecardRow } from '@/components/scorecard/scorecard-utils'
+import InfoTip from '@/components/scorecard/info-tip'
+import { audience, confidence, fmtDay, fmtNumber, pct, type ScorecardRow } from '@/components/scorecard/scorecard-utils'
 import { pageMetadata } from '@/utils/page-metadata'
 import { createClient } from '@/utils/supabase/server'
 
@@ -44,8 +45,11 @@ export default async function FlavorScorecardPage({
   const hidden = all.filter((r) => r.votes > 0).length - rows.length
   const unvoted = all.filter((r) => r.votes === 0).length
 
+  // Options sit inside one outlined group, so the label beside it reads as a label, not a button
+  const group = 'inline-flex rounded-lg border border-[rgb(var(--gloss)/0.8)] bg-[rgb(var(--panel)/0.6)] p-0.5 dark:border-[rgb(var(--gloss)/0.2)]'
   const chip = (on: boolean) =>
-    `rounded-lg px-2.5 py-1 text-sm transition ${on ? 'bg-[rgb(var(--primary))] text-[rgb(var(--on-primary))]' : 'text-[rgb(var(--muted))] hover:text-[rgb(var(--ink))]'}`
+    `rounded-md px-2.5 py-1 text-sm transition ${on ? 'bg-[rgb(var(--primary))] text-[rgb(var(--on-primary))]' : 'text-[rgb(var(--muted))] hover:text-[rgb(var(--ink))]'}`
+  const label = 'mr-2 text-xs text-[rgb(var(--muted))]'
 
   return (
     <main className="relative flex min-h-screen flex-col">
@@ -57,57 +61,72 @@ export default async function FlavorScorecardPage({
             Suspicious study voters →
           </Link>
         </div>
-        <ul className="mt-2 list-disc space-y-0.5 pl-5 text-sm text-[rgb(var(--muted))]">
-          <li>Which humor flavors voters like most.</li>
-          <li>👍 rate = share of votes that were thumbs up.{average != null ? ` Average: ${pct(average)} (black tick).` : ''}</li>
-          <li>
-            Trust = how many votes the rate is based on: <b>High</b> 1,000+, <b>Medium</b> 200–999, <b>Low</b> under 200. A high rate
-            with Medium or Low trust can be luck.
-          </li>
-          <li>Click a flavor to see its best and worst captions.</li>
-        </ul>
+        <p className="mt-1 text-sm text-[rgb(var(--muted))]">
+          Which humor flavors voters like most. Click a flavor to see its best and worst captions.
+        </p>
 
         {error ? (
           <p className="mt-6 rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
-            Couldn&apos;t load the scorecard: {error.message}. If it says the function doesn&apos;t exist, run
-            supabase/migrations/20261104000000_flavor_scorecard.sql in the Supabase SQL editor.
+            Couldn&apos;t load the scorecard: {error.message}
           </p>
         ) : null}
 
         <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2">
-          <div className="flex items-center gap-1">
-            <span className="mr-1 text-xs font-medium text-[rgb(var(--muted))]">Min. votes</span>
-            {MIN_OPTIONS.map((m) => (
-              <Link key={m} href={`/flavor-scorecard?min=${m}&sort=${sort}`} className={chip(m === min)}>
-                {m === 0 ? 'Any' : m.toLocaleString('en-US')}
-              </Link>
-            ))}
+          <div className="flex items-center">
+            <span className={label}>
+              Show flavors with at least
+              <InfoTip text="Hides flavors with too few votes to judge. A flavor with 3 votes can show 100% by luck." />
+            </span>
+            <span className={group}>
+              {MIN_OPTIONS.map((m) => (
+                <Link key={m} href={`/flavor-scorecard?min=${m}&sort=${sort}`} className={chip(m === min)}>
+                  {m === 0 ? 'Any' : `${m.toLocaleString('en-US')} votes`}
+                </Link>
+              ))}
+            </span>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="mr-1 text-xs font-medium text-[rgb(var(--muted))]">Sort by</span>
-            {(Object.keys(SORTS) as (keyof typeof SORTS)[]).map((s) => (
-              <Link key={s} href={`/flavor-scorecard?min=${min}&sort=${s}`} className={chip(s === sort)}>
-                {SORTS[s]}
-              </Link>
-            ))}
+          <div className="flex items-center">
+            <span className={label}>Sort by</span>
+            <span className={group}>
+              {(Object.keys(SORTS) as (keyof typeof SORTS)[]).map((s) => (
+                <Link key={s} href={`/flavor-scorecard?min=${min}&sort=${s}`} className={chip(s === sort)}>
+                  {SORTS[s]}
+                </Link>
+              ))}
+            </span>
           </div>
         </div>
 
         <div className="mt-4 overflow-x-auto rounded-xl border border-[rgb(var(--gloss)/0.6)] bg-[rgb(var(--panel)/0.6)] dark:border-[rgb(var(--gloss)/0.15)] dark:bg-[rgb(var(--panel)/0.1)]">
-          <table className="w-full min-w-[600px] text-left text-sm">
+          <table className="w-full min-w-[860px] text-left text-sm">
             <thead className="border-b border-[rgb(var(--gloss)/0.6)] text-xs text-[rgb(var(--muted))] dark:border-[rgb(var(--gloss)/0.15)]">
               <tr>
                 <th className="px-4 py-2 font-medium">#</th>
                 <th className="px-4 py-2 font-medium">Flavor</th>
-                <th className="w-48 px-4 py-2 font-medium">👍 rate</th>
+                <th className="w-48 px-4 py-2 font-medium">
+                  👍 rate
+                  <InfoTip text={`Share of votes on this flavor's captions that were thumbs up. The black tick is the average across all flavors${average != null ? ` (${pct(average)})` : ''}.`} />
+                </th>
                 <th className="px-4 py-2 font-medium">Votes</th>
-                <th className="px-4 py-2 font-medium" title="High: 1,000+ votes · Medium: 200–999 · Low: under 200">Trust</th>
+                <th className="px-4 py-2 font-medium">
+                  Captions voted
+                  <InfoTip text="How many of the captions this flavor wrote got at least one vote. A flavor can write many more captions than people ever vote on." />
+                </th>
+                <th className="px-4 py-2 font-medium">
+                  Audience
+                  <InfoTip text="Do regular voters (10+ votes on this flavor) agree? Fans liked 70%+ of its captions, critics 30% or less. Divided means at least 1 in 5 regulars is a fan and 1 in 5 a critic, as when one group (say, grad students) gets the jokes and another doesn't." />
+                </th>
+                <th className="px-4 py-2 font-medium">
+                  Trust
+                  <InfoTip text="How many votes the rate is based on. High: 1,000+. Medium: 200–999. Low: under 200. A high rate with Medium or Low trust can be luck." />
+                </th>
                 <th className="px-4 py-2 font-medium">Last vote</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((r, i) => {
                 const c = confidence(r.votes)
+                const a = audience(r)
                 return (
                   <tr key={r.flavor_id} className="border-b border-[rgb(var(--gloss)/0.4)] last:border-0 dark:border-[rgb(var(--gloss)/0.1)]">
                     <td className="px-4 py-3 tabular-nums text-[rgb(var(--muted))]">{i + 1}</td>
@@ -123,6 +142,17 @@ export default async function FlavorScorecardPage({
                       </span>
                     </td>
                     <td className="px-4 py-3 tabular-nums">{fmtNumber(r.votes)}</td>
+                    <td className="whitespace-nowrap px-4 py-3 tabular-nums">
+                      {fmtNumber(r.voted_captions)} <span className="text-[rgb(var(--muted))]">of {fmtNumber(r.caption_count)}</span>
+                    </td>
+                    <td className="px-4 py-3 text-xs">
+                      <span className={`font-medium ${a.className}`}>{a.label}</span>
+                      {Number(r.regulars) >= 20 ? (
+                        <span className="block text-[rgb(var(--muted))]">
+                          {fmtNumber(r.fans)} fans · {fmtNumber(r.critics)} critics
+                        </span>
+                      ) : null}
+                    </td>
                     <td className={`px-4 py-3 text-xs font-medium ${c.className}`}>{c.label}</td>
                     <td className="whitespace-nowrap px-4 py-3 text-xs text-[rgb(var(--muted))]">{fmtDay(r.last_vote)}</td>
                   </tr>
@@ -130,7 +160,7 @@ export default async function FlavorScorecardPage({
               })}
               {!rows.length && !error ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-[rgb(var(--muted))]">
+                  <td colSpan={8} className="px-4 py-8 text-center text-[rgb(var(--muted))]">
                     No flavor has that many votes. Try a lower minimum.
                   </td>
                 </tr>

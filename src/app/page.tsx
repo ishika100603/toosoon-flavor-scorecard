@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 
 import FlavorWorkbench from '@/components/flavor-workbench'
 import { GlobalViewsMenu } from '@/components/tool-directory'
@@ -7,8 +6,6 @@ import AppHeader from '@/components/app-header'
 import { createClient } from '@/utils/supabase/server'
 
 export default async function HomePage() {
-  // This deploy exists to show the Flavor Scorecard, so it opens there
-  if (process.env.NEXT_PUBLIC_ENABLE_EMAIL_LOGIN === 'true') redirect('/flavor-scorecard')
   const supabase = await createClient({ readOnly: true })
   const {
     data: { user },
