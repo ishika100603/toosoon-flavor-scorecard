@@ -4,7 +4,7 @@ import RateBar from '@/components/scorecard/rate-bar'
 import { confidence, fmtNumber, fmtWeek, pct, type ScorecardCaption, type ScorecardDetail } from '@/components/scorecard/scorecard-utils'
 import { createClient } from '@/utils/supabase/server'
 
-function CaptionList({ title, items, tone }: { title: string; items: ScorecardCaption[]; tone: 'good' | 'bad' }) {
+function CaptionList({ title, items, tone, empty = 'No caption has 5+ votes yet.' }: { title: string; items: ScorecardCaption[]; tone: 'good' | 'bad'; empty?: string }) {
   return (
     <div>
       <h3 className="text-xs font-semibold text-[rgb(var(--muted))]">{title}</h3>
@@ -28,7 +28,7 @@ function CaptionList({ title, items, tone }: { title: string; items: ScorecardCa
           ))}
         </ol>
       ) : (
-        <p className="mt-2 text-sm text-[rgb(var(--muted))]">No caption has 5+ votes yet.</p>
+        <p className="mt-2 text-sm text-[rgb(var(--muted))]">{empty}</p>
       )}
     </div>
   )
@@ -83,6 +83,14 @@ export default async function FlavorScorecardPanel({ flavorId }: { flavorId: num
   const up = detail.weekly.reduce((n, w) => n + Math.round(Number(w.votes) * Number(w.up_rate ?? 0)), 0)
   const rate = votes ? up / votes : null
   const c = confidence(votes)
+  // With few captions the two lists overlap: a caption shows in only one, and
+  // "worst" only lists captions that actually did worse than the best ones
+  const bestIds = new Set(detail.best.map((b) => b.id))
+  const lowestBest = Math.min(...detail.best.map((b) => Number(b.up_rate)))
+  const worst = detail.worst.filter((w) => !bestIds.has(w.id) && Number(w.up_rate) < lowestBest)
+  const worstEmpty = detail.best.length
+    ? 'No other caption with 5+ votes did worse than the best ones.'
+    : 'No caption has 5+ votes yet.'
 
   return (
     <section className="rounded-xl border border-[rgb(var(--primary)/0.35)] bg-[rgb(var(--panel)/0.6)] p-4 dark:border-[rgb(var(--primary)/0.25)] dark:bg-[rgb(var(--panel)/0.1)]">
@@ -116,7 +124,7 @@ export default async function FlavorScorecardPanel({ flavorId }: { flavorId: num
           <Trend weekly={detail.weekly} />
           <div className="grid gap-5 md:grid-cols-2">
             <CaptionList title="Best captions" items={detail.best} tone="good" />
-            <CaptionList title="Worst captions" items={detail.worst} tone="bad" />
+            <CaptionList title="Worst captions" items={worst} tone="bad" empty={worstEmpty} />
           </div>
         </div>
       )}
