@@ -158,7 +158,7 @@ export default async function StudyVotersPage({
 
             <h2 className="mt-8 text-lg font-semibold">
               How each flavor&apos;s 👍 rate changes when flagged voters are removed
-              <InfoTip text="👍 rate = share of study votes that were &quot;funny&quot; or &quot;very funny&quot;. Before counts every voter; after leaves out the flagged ones. Flavors with 200+ study votes, biggest change first." />
+              <InfoTip text="👍 rate = share of study votes that were &quot;funny&quot; or &quot;very funny&quot;. Before counts every voter; after leaves out the flagged ones. Change is in percentage points: 35% → 29% is −6 points. A rate can go up when the flagged voters had been disliking that flavor. Flavors with 200+ study votes, biggest change first." />
             </h2>
             <div className={box}>
               <table className="w-full min-w-[560px] text-left text-sm">
@@ -173,7 +173,8 @@ export default async function StudyVotersPage({
                 </thead>
                 <tbody>
                   {r.flavors.map((f) => {
-                    const change = f.clean_rate == null ? null : Math.round((Number(f.clean_rate) - Number(f.rate)) * 100)
+                    // Difference of the two rounded rates shown, so 56% → 57% reads +1
+                    const change = f.clean_rate == null ? null : Math.round(Number(f.clean_rate) * 100) - Math.round(Number(f.rate) * 100)
                     return (
                       <tr key={f.flavor_id} className={row}>
                         <td className="px-4 py-2.5">
