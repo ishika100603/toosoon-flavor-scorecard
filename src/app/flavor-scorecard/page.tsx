@@ -80,7 +80,7 @@ export default async function FlavorScorecardPage({
           <div className="flex items-center">
             <span className={label}>
               Show flavors with at least
-              <InfoTip text="Hides flavors with too few votes to judge. A flavor with 3 votes can show 100% by luck." />
+              <InfoTip text="Hides flavors with too few votes to judge. A flavor with 3 votes can show 100% by luck." align="left" />
             </span>
             <span className={group}>
               {MIN_OPTIONS.map((m) => (
@@ -123,15 +123,15 @@ export default async function FlavorScorecardPage({
                 <th className="whitespace-nowrap px-4 py-2 font-medium">Votes</th>
                 <th className="whitespace-nowrap px-4 py-2 font-medium">
                   Captions voted
-                  <InfoTip text="How many of the captions this flavor wrote got at least one vote. A flavor can write many more captions than people ever vote on." />
+                  <InfoTip text="How many of the captions this flavor wrote got at least one vote. A flavor can write many more captions than people ever vote on." align="right" />
                 </th>
                 <th className="whitespace-nowrap px-4 py-2 font-medium">
                   Audience
-                  <InfoTip text="Do regular voters (10+ votes on this flavor) agree? Fans liked 70%+ of its captions, critics 30% or less. Divided means at least 1 in 5 regulars is a fan and 1 in 5 a critic, as when one group (say, grad students) gets the jokes and another doesn't." />
+                  <InfoTip text="Do regular voters (10+ votes on this flavor) agree? Fans liked 70%+ of its captions, critics 30% or less. Divided means at least 1 in 5 regulars is a fan and 1 in 5 a critic, as when one group (say, grad students) gets the jokes and another doesn't." align="right" />
                 </th>
                 <th className="whitespace-nowrap px-4 py-2 font-medium">
                   Trust
-                  <InfoTip text="How many votes the rate is based on. High: 1,000+. Medium: 200–999. Low: under 200. A high rate with Medium or Low trust can be luck." />
+                  <InfoTip text="How many votes the rate is based on. High: 1,000+. Medium: 200–999. Low: under 200. A high rate with Medium or Low trust can be luck." align="right" />
                 </th>
                 <th className="whitespace-nowrap px-4 py-2 font-medium">Last vote</th>
               </tr>
