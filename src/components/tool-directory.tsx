@@ -116,6 +116,11 @@ const GLOBAL_VIEWS: { name: string; href: string; blurb: string }[] = [
     blurb: 'Every flavor ranked by how real voters rated its captions.',
   },
   {
+    name: 'Suspicious study voters',
+    href: '/study-voters',
+    blurb: 'Study voters who answer too fast or the same every time, and how much they skew each flavor.',
+  },
+  {
     name: 'Run archive',
     href: '/runs',
     blurb: 'All runs, all flavors, forward and reverse.',

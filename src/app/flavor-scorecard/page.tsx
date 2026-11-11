@@ -51,7 +51,12 @@ export default async function FlavorScorecardPage({
     <main className="relative flex min-h-screen flex-col">
       <AppHeader />
       <div className="mx-auto w-full max-w-5xl px-6 py-8">
-        <h1 className="text-2xl font-semibold">Flavor scorecard</h1>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h1 className="text-2xl font-semibold">Flavor scorecard</h1>
+          <Link href="/study-voters" className="text-sm text-[rgb(var(--accent-strong))] hover:underline">
+            Suspicious study voters →
+          </Link>
+        </div>
         <ul className="mt-2 list-disc space-y-0.5 pl-5 text-sm text-[rgb(var(--muted))]">
           <li>Which humor flavors voters like most.</li>
           <li>👍 rate = share of votes that were thumbs up.{average != null ? ` Average: ${pct(average)} (black tick).` : ''}</li>
