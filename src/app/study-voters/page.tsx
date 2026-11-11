@@ -17,10 +17,12 @@ type Voter = {
   studies: number
   too_fast: boolean
   same_answer: boolean
+  shared_session: boolean
 }
 type Flavor = { flavor_id: number; slug: string; votes: number; clean_votes: number; rate: number; clean_rate: number | null }
 type Check = {
   judged: number
+  shared: number
   too_few: number
   flagged: number
   votes_total: number
@@ -74,7 +76,7 @@ export default async function StudyVotersPage({
           </Link>
         </div>
         <ul className="mt-2 list-disc space-y-0.5 pl-5 text-sm text-[rgb(var(--muted))]">
-          <li>Humor-study voters with 30+ votes are checked.</li>
+          <li>Humor-study voters with 30+ votes are checked for speed (and answers, if switched on).</li>
           <li>
             <b>Too fast:</b> their typical vote takes under {secs(fast)}, too quick to read the caption.
           </li>
@@ -84,6 +86,10 @@ export default async function StudyVotersPage({
               disliking everything can be a real taste.
             </li>
           ) : null}
+          <li>
+            <b>Shared session:</b> the same browser session also voted from another account, a sign of one person using several
+            accounts.
+          </li>
           <li>👍 rate here = share of study votes that were &quot;funny&quot; or &quot;very funny&quot;.</li>
         </ul>
 
@@ -118,7 +124,7 @@ export default async function StudyVotersPage({
                 [pct(r.votes_total ? r.votes_flagged / r.votes_total : null), `of study votes (${fmtNumber(r.votes_flagged)}) come from them`],
                 same
                   ? [fmtNumber(r.voters.filter((v) => v.too_fast && v.same_answer).length), 'voters are both too fast and same answer']
-                  : [secs(fast), 'or faster per vote counts as too fast'],
+                  : [fmtNumber(r.shared), 'accounts share a browser session with another account'],
               ].map(([n, label]) => (
                 <div key={label} className="rounded-xl border border-[rgb(var(--gloss)/0.6)] bg-[rgb(var(--panel)/0.6)] p-4 dark:border-[rgb(var(--gloss)/0.15)] dark:bg-[rgb(var(--panel)/0.1)]">
                   <p className="text-2xl font-semibold tabular-nums">{n}</p>
@@ -192,7 +198,7 @@ export default async function StudyVotersPage({
                       <td className={`px-4 py-2.5 ${v.same_answer ? 'font-semibold text-red-700 dark:text-red-300' : ''}`}>
                         {v.top_answer} ({pct(v.top_share)})
                       </td>
-                      <td className="px-4 py-2.5 text-xs">{[v.too_fast && 'Too fast', v.same_answer && 'Same answer'].filter(Boolean).join(' + ')}</td>
+                      <td className="px-4 py-2.5 text-xs">{[v.too_fast && 'Too fast', v.same_answer && 'Same answer', v.shared_session && 'Shared session'].filter(Boolean).join(' + ')}</td>
                     </tr>
                   ))}
                   {!r.voters.length ? (

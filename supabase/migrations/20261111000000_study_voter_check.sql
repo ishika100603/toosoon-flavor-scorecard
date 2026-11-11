@@ -6,7 +6,10 @@
 --     to have read the caption. Uses time_to_vote_ms when the app recorded it,
 --     otherwise the time since their previous vote (the two agree within ~20 ms
 --     where both exist). Gaps over 10 minutes are breaks and are ignored.
---   * Same answer: 95%+ of their votes are one answer.
+--   * Same answer: 95%+ of their votes are one answer (the page keeps this off by
+--     default: liking or disliking everything can be a real taste).
+--   * Shared session: the same browser session voted from another account too,
+--     a sign of one person using several accounts.
 -- Funny / very funny count as a thumbs up; every other answer counts as not.
 create or replace function public.study_voter_check(p_min_votes int default 30, p_fast_ms int default 1000, p_same_share numeric default 0.95)
 returns jsonb
@@ -37,14 +40,24 @@ begin
     from e left join public.study_caption_mappings m on m.id = e.study_caption_mapping_id
     group by e.profile_id
   ),
+  shared as (
+    select distinct ev.profile_id
+    from public.study_caption_vote_events ev
+    where ev.session_id in (
+      select session_id from public.study_caption_vote_events
+      where session_id is not null
+      group by session_id having count(distinct profile_id) > 1)
+  ),
   judged as (
     select v.*, a.v as top_answer, a.c::numeric / v.votes as top_share,
            (v.median_ms < p_fast_ms) as too_fast,
-           (a.c::numeric / v.votes >= p_same_share) as same_answer
+           (a.c::numeric / v.votes >= p_same_share) as same_answer,
+           (sh.profile_id is not null) as shared_session
     from voters v join answers a on a.profile_id = v.profile_id and a.rk = 1
-    where v.votes >= p_min_votes
+    left join shared sh on sh.profile_id = v.profile_id
+    where v.votes >= p_min_votes or sh.profile_id is not null
   ),
-  flagged as (select profile_id from judged where too_fast or same_answer),
+  flagged as (select profile_id from judged where too_fast or same_answer or shared_session),
   per_flavor as (
     select c.humor_flavor_id as flavor_id,
            count(*) as votes,
@@ -60,6 +73,7 @@ begin
   select jsonb_build_object(
     'rules', jsonb_build_object('min_votes', p_min_votes, 'fast_ms', p_fast_ms, 'same_share', p_same_share),
     'judged', (select count(*) from judged),
+    'shared', (select count(*) from shared),
     'too_few', (select count(*) from voters where votes < p_min_votes),
     'flagged', (select count(*) from flagged),
     'votes_total', (select count(*) from e),
@@ -73,9 +87,10 @@ begin
                'top_share', round(j.top_share, 3),
                'studies', j.studies,
                'too_fast', j.too_fast,
-               'same_answer', j.same_answer)
-             order by (j.too_fast and j.same_answer) desc, j.votes desc)
-      from judged j where j.too_fast or j.same_answer), '[]'::jsonb),
+               'same_answer', j.same_answer,
+               'shared_session', j.shared_session)
+             order by j.shared_session desc, j.votes desc)
+      from judged j where j.too_fast or j.same_answer or j.shared_session), '[]'::jsonb),
     'flavors', coalesce((
       select jsonb_agg(jsonb_build_object(
                'flavor_id', p.flavor_id,
