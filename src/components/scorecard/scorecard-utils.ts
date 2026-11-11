@@ -31,10 +31,10 @@ export type ScorecardDetail = {
 // How much to trust a thumbs-up rate, by how many votes it rests on
 export const confidence = (votes: number) =>
   votes >= 1000
-    ? { label: 'Solid', className: 'text-emerald-700 dark:text-emerald-300' }
+    ? { label: 'High', className: 'text-emerald-700 dark:text-emerald-300' }
     : votes >= 200
-      ? { label: 'Some', className: 'text-amber-700 dark:text-amber-300' }
-      : { label: 'Too few votes', className: 'text-[rgb(var(--muted))]' }
+      ? { label: 'Medium', className: 'text-amber-700 dark:text-amber-300' }
+      : { label: 'Low', className: 'text-[rgb(var(--muted))]' }
 
 export const pct = (rate: number | null | undefined) => (rate == null ? '–' : `${Math.round(Number(rate) * 100)}%`)
 

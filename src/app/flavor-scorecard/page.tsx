@@ -10,7 +10,7 @@ import { createClient } from '@/utils/supabase/server'
 export const metadata = pageMetadata('Flavor scorecard')
 
 const MIN_OPTIONS = [0, 50, 200, 1000]
-const SORTS = { rate: 'Thumbs-up rate', votes: 'Most votes', recent: 'Most recent vote' } as const
+const SORTS = { rate: '👍 rate', votes: 'Most votes', recent: 'Newest' } as const
 
 // Every flavor ranked by how real voters rated its captions.
 export default async function FlavorScorecardPage({
@@ -51,14 +51,12 @@ export default async function FlavorScorecardPage({
     <main className="relative flex min-h-screen flex-col">
       <AppHeader />
       <div className="mx-auto w-full max-w-5xl px-6 py-8">
-        <Link href="/" className="text-sm text-[rgb(var(--muted))] hover:text-[rgb(var(--accent-strong))]">
-          ← Back to flavors
-        </Link>
-        <h1 className="mt-2 text-2xl font-semibold text-[rgb(var(--headline-accent-strong))] sm:text-3xl">Flavor scorecard</h1>
-        <p className="mt-1 max-w-2xl text-sm text-[rgb(var(--muted))]">
-          How real voters rated each flavor&apos;s captions. The thumbs-up rate is the share of all votes on a flavor&apos;s captions that were 👍.
-          {average != null ? ` Across every flavor it is ${pct(average)} (the black tick on each bar).` : ''}
-        </p>
+        <h1 className="text-2xl font-semibold">Flavor scorecard</h1>
+        <ul className="mt-2 list-disc space-y-0.5 pl-5 text-sm text-[rgb(var(--muted))]">
+          <li>Which humor flavors voters like most.</li>
+          <li>👍 rate = share of votes that were thumbs up.{average != null ? ` Average: ${pct(average)} (black tick).` : ''}</li>
+          <li>Click a flavor to see its best and worst captions.</li>
+        </ul>
 
         {error ? (
           <p className="mt-6 rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
@@ -69,10 +67,10 @@ export default async function FlavorScorecardPage({
 
         <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2">
           <div className="flex items-center gap-1">
-            <span className="mr-1 text-xs font-medium text-[rgb(var(--muted))]">At least</span>
+            <span className="mr-1 text-xs font-medium text-[rgb(var(--muted))]">Min. votes</span>
             {MIN_OPTIONS.map((m) => (
               <Link key={m} href={`/flavor-scorecard?min=${m}&sort=${sort}`} className={chip(m === min)}>
-                {m === 0 ? 'any' : m.toLocaleString('en-US')} votes
+                {m === 0 ? 'Any' : m.toLocaleString('en-US')}
               </Link>
             ))}
           </div>
@@ -87,15 +85,14 @@ export default async function FlavorScorecardPage({
         </div>
 
         <div className="mt-4 overflow-x-auto rounded-xl border border-[rgb(var(--gloss)/0.6)] bg-[rgb(var(--panel)/0.6)] dark:border-[rgb(var(--gloss)/0.15)] dark:bg-[rgb(var(--panel)/0.1)]">
-          <table className="w-full min-w-[720px] text-left text-sm">
+          <table className="w-full min-w-[600px] text-left text-sm">
             <thead className="border-b border-[rgb(var(--gloss)/0.6)] text-xs text-[rgb(var(--muted))] dark:border-[rgb(var(--gloss)/0.15)]">
               <tr>
                 <th className="px-4 py-2 font-medium">#</th>
                 <th className="px-4 py-2 font-medium">Flavor</th>
-                <th className="w-48 px-4 py-2 font-medium">Thumbs-up rate</th>
+                <th className="w-48 px-4 py-2 font-medium">👍 rate</th>
                 <th className="px-4 py-2 font-medium">Votes</th>
-                <th className="px-4 py-2 font-medium">Captions voted on</th>
-                <th className="px-4 py-2 font-medium">Confidence</th>
+                <th className="px-4 py-2 font-medium">Trust</th>
                 <th className="px-4 py-2 font-medium">Last vote</th>
               </tr>
             </thead>
@@ -117,9 +114,6 @@ export default async function FlavorScorecardPage({
                       </span>
                     </td>
                     <td className="px-4 py-3 tabular-nums">{fmtNumber(r.votes)}</td>
-                    <td className="px-4 py-3 tabular-nums text-[rgb(var(--muted))]">
-                      {fmtNumber(r.voted_captions)} of {fmtNumber(r.caption_count)}
-                    </td>
                     <td className={`px-4 py-3 text-xs font-medium ${c.className}`}>{c.label}</td>
                     <td className="whitespace-nowrap px-4 py-3 text-xs text-[rgb(var(--muted))]">{fmtDay(r.last_vote)}</td>
                   </tr>
@@ -127,7 +121,7 @@ export default async function FlavorScorecardPage({
               })}
               {!rows.length && !error ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-[rgb(var(--muted))]">
+                  <td colSpan={6} className="px-4 py-8 text-center text-[rgb(var(--muted))]">
                     No flavor has that many votes. Try a lower minimum.
                   </td>
                 </tr>
@@ -136,9 +130,7 @@ export default async function FlavorScorecardPage({
           </table>
         </div>
         <p className="mt-2 text-xs text-[rgb(var(--muted))]">
-          {rows.length} flavors shown
-          {hidden > 0 ? ` · ${hidden} hidden for having fewer than ${min} votes` : ''}
-          {unvoted > 0 ? ` · ${unvoted} have captions but no votes yet` : ''}.
+          {rows.length} flavors shown{hidden > 0 ? ` · ${hidden} with fewer votes hidden` : ''}
         </p>
       </div>
     </main>

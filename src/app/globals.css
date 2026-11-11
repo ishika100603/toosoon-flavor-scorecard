@@ -175,7 +175,7 @@
   }
 
   body {
-    font-family: "Trebuchet MS", Verdana, Arial, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
     background-color: rgb(var(--canvas));
     color: rgb(var(--ink));
     line-height: 1.5;
@@ -273,3 +273,7 @@
     transform: translateY(0);
   }
 }
+
+
+/* Arial for every control too */
+button, input, select, textarea { font-family: inherit; }

@@ -40,7 +40,7 @@ function Trend({ weekly }: { weekly: ScorecardDetail['weekly'] }) {
   const maxVotes = Math.max(...weekly.map((w) => Number(w.votes)))
   return (
     <div>
-      <h3 className="text-xs font-semibold text-[rgb(var(--muted))]">Thumbs-up rate by week</h3>
+      <h3 className="text-xs font-semibold text-[rgb(var(--muted))]">👍 rate by week</h3>
       <div className="mt-2 flex h-32 items-end gap-1.5" role="img" aria-label="Weekly thumbs-up rate">
         {weekly.map((w) => {
           const rate = w.up_rate == null ? 0 : Number(w.up_rate)
@@ -66,7 +66,7 @@ function Trend({ weekly }: { weekly: ScorecardDetail['weekly'] }) {
           </span>
         ))}
       </div>
-      <p className="mt-1 text-[11px] text-[rgb(var(--muted))]">Fainter bars had fewer votes that week. Hover a bar for its vote count.</p>
+      <p className="mt-1 text-[11px] text-[rgb(var(--muted))]">Fainter bar = fewer votes.</p>
     </div>
   )
 }
@@ -89,7 +89,7 @@ export default async function FlavorScorecardPanel({ flavorId }: { flavorId: num
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-lg font-semibold">Scorecard</h2>
         <Link href="/flavor-scorecard" className="text-sm text-[rgb(var(--accent-strong))] hover:underline">
-          Compare with every flavor →
+          All flavors →
         </Link>
       </div>
       {error ? (
@@ -103,13 +103,13 @@ export default async function FlavorScorecardPanel({ flavorId }: { flavorId: num
           <div className="grid gap-3 sm:grid-cols-[auto_1fr] sm:items-center sm:gap-6">
             <div>
               <p className="text-4xl font-semibold tabular-nums">{pct(rate)}</p>
-              <p className="text-xs text-[rgb(var(--muted))]">thumbs-up rate</p>
+              <p className="text-xs text-[rgb(var(--muted))]">👍 rate</p>
             </div>
             <div className="grid gap-2">
               <RateBar rate={rate} />
               <p className="text-sm text-[rgb(var(--muted))]">
-                {fmtNumber(votes)} votes on {fmtNumber(captionsQ.count)} captions ·{' '}
-                <span className={`font-medium ${c.className}`}>{c.label === 'Too few votes' ? 'too few votes to trust yet' : `${c.label.toLowerCase()} sample`}</span>
+                {fmtNumber(votes)} votes · Trust:{' '}
+                <span className={`font-medium ${c.className}`}>{c.label}</span>
               </p>
             </div>
           </div>
