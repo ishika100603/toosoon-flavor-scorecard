@@ -18,6 +18,8 @@ type Voter = {
   too_fast: boolean
   same_answer: boolean
   shared_session: boolean
+  rushes: boolean
+  rushed_share: number | null
 }
 type Flavor = { flavor_id: number; slug: string; votes: number; clean_votes: number; rate: number; clean_rate: number | null }
 type Check = {
@@ -34,6 +36,7 @@ type Check = {
 const FAST = [500, 1000, 2000]
 // 0 = off. Liking (or hating) everything can be a real taste, so it's off by default
 const SAME = [0, 0.95, 1]
+const RUSH = [0, 0.2, 0.3]
 const SHOWN = 50
 
 const secs = (ms: number | null) => (ms == null ? '–' : `${(ms / 1000).toFixed(1)}s`)
@@ -47,6 +50,7 @@ export default async function StudyVotersPage({
   const params = await searchParams
   const fast = FAST.includes(Number(params.fast)) ? Number(params.fast) : 1000
   const same = SAME.includes(Number(params.same)) ? Number(params.same) : 0
+  const rush = RUSH.includes(Number(params.rush)) ? Number(params.rush) : 0.2
 
   const supabase = await createClient({ readOnly: true })
   const {
@@ -54,7 +58,7 @@ export default async function StudyVotersPage({
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data, error } = await supabase.rpc('study_voter_check', { p_min_votes: 30, p_fast_ms: fast, p_same_share: same || 2 })
+  const { data, error } = await supabase.rpc('study_voter_check', { p_min_votes: 30, p_fast_ms: fast, p_same_share: same || 2, p_rush_share: rush })
   const r = data as Check | null
 
   const chip = (on: boolean) =>
@@ -80,6 +84,12 @@ export default async function StudyVotersPage({
           <li>
             <b>Too fast:</b> their typical vote takes under {secs(fast)}, too quick to read the caption.
           </li>
+          {rush ? (
+            <li>
+              <b>Rushes sometimes:</b> normally takes {secs(fast * 2)}+ per vote, but {Math.round(rush * 100)}%+ of their votes take under{' '}
+              {secs(fast)}.
+            </li>
+          ) : null}
           {same ? (
             <li>
               <b>Same answer (optional):</b> {Math.round(same * 100)}%+ of their votes are one answer. Off by default, since liking or
@@ -97,15 +107,23 @@ export default async function StudyVotersPage({
           <div className="flex items-center gap-1">
             <span className="mr-1 text-xs font-medium text-[rgb(var(--muted))]">Too fast under</span>
             {FAST.map((f) => (
-              <Link key={f} href={`/study-voters?fast=${f}&same=${same}`} className={chip(f === fast)}>
+              <Link key={f} href={`/study-voters?fast=${f}&same=${same}&rush=${rush}`} className={chip(f === fast)}>
                 {secs(f)}
+              </Link>
+            ))}
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="mr-1 text-xs font-medium text-[rgb(var(--muted))]">Rushes sometimes</span>
+            {RUSH.map((x) => (
+              <Link key={x} href={`/study-voters?fast=${fast}&same=${same}&rush=${x}`} className={chip(x === rush)}>
+                {x ? `${Math.round(x * 100)}%+` : 'Off'}
               </Link>
             ))}
           </div>
           <div className="flex items-center gap-1">
             <span className="mr-1 text-xs font-medium text-[rgb(var(--muted))]">Also flag same answer</span>
             {SAME.map((s) => (
-              <Link key={s} href={`/study-voters?fast=${fast}&same=${s}`} className={chip(s === same)}>
+              <Link key={s} href={`/study-voters?fast=${fast}&same=${s}&rush=${rush}`} className={chip(s === same)}>
                 {s ? `${Math.round(s * 100)}%+` : 'Off'}
               </Link>
             ))}
@@ -198,7 +216,14 @@ export default async function StudyVotersPage({
                       <td className={`px-4 py-2.5 ${v.same_answer ? 'font-semibold text-red-700 dark:text-red-300' : ''}`}>
                         {v.top_answer} ({pct(v.top_share)})
                       </td>
-                      <td className="px-4 py-2.5 text-xs">{[v.too_fast && 'Too fast', v.same_answer && 'Same answer', v.shared_session && 'Shared session'].filter(Boolean).join(' + ')}</td>
+                      <td className="px-4 py-2.5 text-xs">{[
+                          v.too_fast && 'Too fast',
+                          v.rushes && `Rushes sometimes (${pct(v.rushed_share)} under ${secs(fast)})`,
+                          v.same_answer && 'Same answer',
+                          v.shared_session && 'Shared session',
+                        ]
+                          .filter(Boolean)
+                          .join(' + ')}</td>
                     </tr>
                   ))}
                   {!r.voters.length ? (
