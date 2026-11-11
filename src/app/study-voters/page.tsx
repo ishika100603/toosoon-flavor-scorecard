@@ -30,7 +30,8 @@ type Check = {
 }
 
 const FAST = [500, 1000, 2000]
-const SAME = [0.9, 0.95, 1]
+// 0 = off. Liking (or hating) everything can be a real taste, so it's off by default
+const SAME = [0, 0.95, 1]
 const SHOWN = 50
 
 const secs = (ms: number | null) => (ms == null ? '–' : `${(ms / 1000).toFixed(1)}s`)
@@ -43,7 +44,7 @@ export default async function StudyVotersPage({
 }) {
   const params = await searchParams
   const fast = FAST.includes(Number(params.fast)) ? Number(params.fast) : 1000
-  const same = SAME.includes(Number(params.same)) ? Number(params.same) : 0.95
+  const same = SAME.includes(Number(params.same)) ? Number(params.same) : 0
 
   const supabase = await createClient({ readOnly: true })
   const {
@@ -51,7 +52,7 @@ export default async function StudyVotersPage({
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data, error } = await supabase.rpc('study_voter_check', { p_min_votes: 30, p_fast_ms: fast, p_same_share: same })
+  const { data, error } = await supabase.rpc('study_voter_check', { p_min_votes: 30, p_fast_ms: fast, p_same_share: same || 2 })
   const r = data as Check | null
 
   const chip = (on: boolean) =>
@@ -77,9 +78,12 @@ export default async function StudyVotersPage({
           <li>
             <b>Too fast:</b> their typical vote takes under {secs(fast)}, too quick to read the caption.
           </li>
-          <li>
-            <b>Same answer:</b> {Math.round(same * 100)}%+ of their votes are one answer.
-          </li>
+          {same ? (
+            <li>
+              <b>Same answer (optional):</b> {Math.round(same * 100)}%+ of their votes are one answer. Off by default, since liking or
+              disliking everything can be a real taste.
+            </li>
+          ) : null}
           <li>👍 rate here = share of study votes that were &quot;funny&quot; or &quot;very funny&quot;.</li>
         </ul>
 
@@ -93,10 +97,10 @@ export default async function StudyVotersPage({
             ))}
           </div>
           <div className="flex items-center gap-1">
-            <span className="mr-1 text-xs font-medium text-[rgb(var(--muted))]">Same answer</span>
+            <span className="mr-1 text-xs font-medium text-[rgb(var(--muted))]">Also flag same answer</span>
             {SAME.map((s) => (
               <Link key={s} href={`/study-voters?fast=${fast}&same=${s}`} className={chip(s === same)}>
-                {Math.round(s * 100)}%+
+                {s ? `${Math.round(s * 100)}%+` : 'Off'}
               </Link>
             ))}
           </div>
@@ -112,7 +116,9 @@ export default async function StudyVotersPage({
               {[
                 [`${fmtNumber(r.flagged)} of ${fmtNumber(r.judged)}`, 'voters flagged'],
                 [pct(r.votes_total ? r.votes_flagged / r.votes_total : null), `of study votes (${fmtNumber(r.votes_flagged)}) come from them`],
-                [fmtNumber(r.voters.filter((v) => v.too_fast && v.same_answer).length), 'voters are both too fast and same answer'],
+                same
+                  ? [fmtNumber(r.voters.filter((v) => v.too_fast && v.same_answer).length), 'voters are both too fast and same answer']
+                  : [secs(fast), 'or faster per vote counts as too fast'],
               ].map(([n, label]) => (
                 <div key={label} className="rounded-xl border border-[rgb(var(--gloss)/0.6)] bg-[rgb(var(--panel)/0.6)] p-4 dark:border-[rgb(var(--gloss)/0.15)] dark:bg-[rgb(var(--panel)/0.1)]">
                   <p className="text-2xl font-semibold tabular-nums">{n}</p>
@@ -161,7 +167,7 @@ export default async function StudyVotersPage({
 
             <h2 className="mt-8 text-lg font-semibold">Flagged voters</h2>
             <p className="text-sm text-[rgb(var(--muted))]">
-              Shown by the start of their ID. Both flags first, then most votes.
+              Shown by the start of their ID. Most votes first.
               {r.voters.length > SHOWN ? ` Top ${SHOWN} of ${fmtNumber(r.voters.length)}.` : ''}
             </p>
             <div className={box}>
