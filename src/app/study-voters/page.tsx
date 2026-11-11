@@ -75,7 +75,7 @@ export default async function StudyVotersPage({
   return (
     <main className="relative flex min-h-screen flex-col">
       <AppHeader />
-      <div className="mx-auto w-full max-w-5xl px-6 py-8">
+      <div className="w-full px-4 py-8 sm:px-6">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h1 className="text-2xl font-semibold">Suspicious study voters</h1>
           <Link href={`/flavor-scorecard?fast=${fast}&rush=${rush}&same=${same}`} className="text-sm text-[rgb(var(--accent-strong))] hover:underline">

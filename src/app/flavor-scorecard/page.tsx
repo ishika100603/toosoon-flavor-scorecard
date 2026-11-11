@@ -59,7 +59,7 @@ export default async function FlavorScorecardPage({
   return (
     <main className="relative flex min-h-screen flex-col">
       <AppHeader />
-      <div className="mx-auto w-full max-w-7xl px-6 py-8">
+      <div className="w-full px-4 py-8 sm:px-6">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h1 className="text-2xl font-semibold">Flavor scorecard</h1>
           <Link href={`/study-voters?${ruleQuery}`} className="text-sm text-[rgb(var(--accent-strong))] hover:underline">
@@ -103,7 +103,7 @@ export default async function FlavorScorecardPage({
         </div>
 
         <div className="mt-4 overflow-x-auto rounded-xl border border-[rgb(var(--gloss)/0.6)] bg-[rgb(var(--panel)/0.6)] dark:border-[rgb(var(--gloss)/0.15)] dark:bg-[rgb(var(--panel)/0.1)]">
-          <table className="w-full min-w-[1100px] text-left text-sm">
+          <table className="w-full min-w-[1000px] text-left text-sm">
             <thead className="border-b border-[rgb(var(--gloss)/0.6)] text-xs text-[rgb(var(--muted))] dark:border-[rgb(var(--gloss)/0.15)]">
               <tr>
                 <th className="whitespace-nowrap px-4 py-2 font-medium">#</th>
