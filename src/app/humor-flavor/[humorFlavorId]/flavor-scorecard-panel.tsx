@@ -117,7 +117,8 @@ export default async function FlavorScorecardPanel({ flavorId }: { flavorId: num
               <RateBar rate={rate} />
               <p className="text-sm text-[rgb(var(--muted))]">
                 {fmtNumber(votes)} votes · Trust:{' '}
-                <span className={`font-medium ${c.className}`}>{c.label}</span>
+                <span className={`font-medium ${c.className}`}>{c.label}</span>{' '}
+                <span className="text-xs">({c.label === 'High' ? '1,000+ votes' : c.label === 'Medium' ? '200–999 votes, could be luck' : 'under 200 votes, likely luck'})</span>
               </p>
             </div>
           </div>

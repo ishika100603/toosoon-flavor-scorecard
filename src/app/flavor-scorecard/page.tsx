@@ -60,6 +60,10 @@ export default async function FlavorScorecardPage({
         <ul className="mt-2 list-disc space-y-0.5 pl-5 text-sm text-[rgb(var(--muted))]">
           <li>Which humor flavors voters like most.</li>
           <li>👍 rate = share of votes that were thumbs up.{average != null ? ` Average: ${pct(average)} (black tick).` : ''}</li>
+          <li>
+            Trust = how many votes the rate is based on: <b>High</b> 1,000+, <b>Medium</b> 200–999, <b>Low</b> under 200. A high rate
+            with Medium or Low trust can be luck.
+          </li>
           <li>Click a flavor to see its best and worst captions.</li>
         </ul>
 
@@ -97,7 +101,7 @@ export default async function FlavorScorecardPage({
                 <th className="px-4 py-2 font-medium">Flavor</th>
                 <th className="w-48 px-4 py-2 font-medium">👍 rate</th>
                 <th className="px-4 py-2 font-medium">Votes</th>
-                <th className="px-4 py-2 font-medium">Trust</th>
+                <th className="px-4 py-2 font-medium" title="High: 1,000+ votes · Medium: 200–999 · Low: under 200">Trust</th>
                 <th className="px-4 py-2 font-medium">Last vote</th>
               </tr>
             </thead>
