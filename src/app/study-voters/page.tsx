@@ -158,7 +158,7 @@ export default async function StudyVotersPage({
 
             <h2 className="mt-8 text-lg font-semibold">
               How each flavor&apos;s 👍 rate changes when flagged voters are removed
-              <InfoTip text="👍 rate = share of study votes that were &quot;funny&quot; or &quot;very funny&quot;. Before counts every voter; after leaves out the flagged ones. Change is in percentage points: 35% → 29% is −6 points. A rate can go up when the flagged voters had been disliking that flavor. Flavors with 200+ study votes, biggest change first." />
+              <InfoTip text="👍 rate = share of study votes that were &quot;funny&quot; or &quot;very funny&quot;. Before counts every voter; after leaves out the flagged ones. Change: 35% → 29% means 6 fewer likes for every 100 votes. A rate can go up when the flagged voters had been disliking that flavor. Flavors with 200+ study votes, biggest change first." />
             </h2>
             <div className={box}>
               <table className="w-full min-w-[560px] text-left text-sm">
@@ -185,7 +185,7 @@ export default async function StudyVotersPage({
                         <td className={td}>{pct(f.rate)}</td>
                         <td className={`${td} font-semibold`}>{pct(f.clean_rate)}</td>
                         <td className={`${td} ${change && change < 0 ? 'text-red-700 dark:text-red-300' : change && change > 0 ? 'text-emerald-700 dark:text-emerald-300' : ''}`}>
-                          {change == null ? '–' : `${change > 0 ? '+' : ''}${change} points`}
+                          {change == null ? '–' : change === 0 ? 'No change' : `${Math.abs(change)} ${change > 0 ? 'more' : 'fewer'} likes per 100 votes`}
                         </td>
                         <td className={`${td} text-[rgb(var(--muted))]`}>
                           {fmtNumber(f.clean_votes)} of {fmtNumber(f.votes)}
