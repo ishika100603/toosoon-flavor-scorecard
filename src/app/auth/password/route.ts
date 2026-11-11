@@ -35,5 +35,5 @@ export async function POST(request: Request) {
     return back('Signed in, but this profile is not a matrix admin yet. Set is_matrix_admin = true and try again.')
   }
 
-  return NextResponse.redirect(new URL('/', url.origin), 303)
+  return NextResponse.redirect(new URL('/flavor-scorecard', url.origin), 303)
 }

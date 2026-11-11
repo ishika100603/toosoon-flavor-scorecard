@@ -11,6 +11,9 @@ export default async function LoginPage({
   const params = await searchParams
   const message = params.message ?? params.error
   const displayMessage = Array.isArray(message) ? message[0] : message
+  // The course-data copy has no Google sign-in set up, so it shows only the email form
+  const emailOnly = process.env.NEXT_PUBLIC_ENABLE_EMAIL_LOGIN === 'true'
+  const showEmail = emailOnly || (process.env.NEXT_PUBLIC_SITE_URL ?? '').startsWith('http://localhost')
 
   return (
     <main className="relative flex min-h-screen flex-col overflow-hidden">
@@ -35,7 +38,7 @@ export default async function LoginPage({
                 </span>
               </h1>
               <p className="text-sm text-[rgb(var(--muted))] sm:text-base">
-                Sign in with Google to test humor flavors.
+                {emailOnly ? 'Sign in with your email and password to see the Flavor Scorecard.' : 'Sign in with Google to test humor flavors.'}
               </p>
               {displayMessage ? (
                 <p className="rounded-2xl border border-[rgb(var(--primary)/0.35)] bg-[rgb(var(--primary)/0.12)] px-4 py-3 text-sm font-semibold text-[rgb(var(--accent-strong))] shadow-[0_12px_30px_-24px_rgb(var(--primary-deep)/0.6)] dark:border-[rgb(var(--primary)/0.3)] dark:bg-[rgb(var(--primary)/0.1)]">
@@ -44,6 +47,7 @@ export default async function LoginPage({
               ) : null}
             </div>
 
+            {emailOnly ? null : (
             <form action="/auth/login" method="post" className="mt-6 space-y-4">
               <button
                 type="submit"
@@ -60,12 +64,15 @@ export default async function LoginPage({
                 Access is limited to approved users.
               </p>
             </form>
+            )}
 
-            {(process.env.NEXT_PUBLIC_SITE_URL ?? '').startsWith('http://localhost') || process.env.NEXT_PUBLIC_ENABLE_EMAIL_LOGIN === 'true' ? (
-              <form action="/auth/password" method="post" className="mt-6 space-y-3 border-t border-[rgb(var(--gloss)/0.6)] pt-6">
-                <p className="text-xs uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
-                  Course test account
-                </p>
+            {showEmail ? (
+              <form action="/auth/password" method="post" className={emailOnly ? 'mt-6 space-y-3' : 'mt-6 space-y-3 border-t border-[rgb(var(--gloss)/0.6)] pt-6'}>
+                {emailOnly ? null : (
+                  <p className="text-xs uppercase tracking-[0.24em] text-[rgb(var(--muted))]">
+                    Course test account
+                  </p>
+                )}
                 <input
                   name="email"
                   type="email"
@@ -82,9 +89,9 @@ export default async function LoginPage({
                 />
                 <button
                   type="submit"
-                  className="w-full rounded-2xl border border-[rgb(var(--gloss)/0.6)] px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em]"
+                  className={emailOnly ? 'w-full rounded-2xl bg-[linear-gradient(120deg,rgb(var(--primary-deep)),rgb(var(--primary)),rgb(var(--primary-bright)))] px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em] text-[rgb(var(--on-primary))]' : 'w-full rounded-2xl border border-[rgb(var(--gloss)/0.6)] px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em]'}
                 >
-                  Sign in with email
+                  Sign in
                 </button>
               </form>
             ) : null}
