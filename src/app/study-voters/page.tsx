@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 
 import AppHeader from '@/components/app-header'
 import InfoTip from '@/components/scorecard/info-tip'
-import { fmtNumber, pct } from '@/components/scorecard/scorecard-utils'
+import { fmtNumber, pct, VOTER_RULES, voterRules } from '@/components/scorecard/scorecard-utils'
 import { pageMetadata } from '@/utils/page-metadata'
 import { createClient } from '@/utils/supabase/server'
 
@@ -34,10 +34,10 @@ type Check = {
   flavors: Flavor[]
 }
 
-const FAST = [500, 1000, 2000]
+const FAST = VOTER_RULES.fast
 // 0 = off. Liking (or hating) everything can be a real taste, so it's off by default
-const SAME = [0, 0.95, 1]
-const RUSH = [0, 0.2, 0.3]
+const SAME = VOTER_RULES.same
+const RUSH = VOTER_RULES.rush
 const SHOWN = 50
 
 const secs = (ms: number | null) => (ms == null ? '–' : `${(ms / 1000).toFixed(1)}s`)
@@ -49,9 +49,7 @@ export default async function StudyVotersPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   const params = await searchParams
-  const fast = FAST.includes(Number(params.fast)) ? Number(params.fast) : 1000
-  const same = SAME.includes(Number(params.same)) ? Number(params.same) : 0
-  const rush = RUSH.includes(Number(params.rush)) ? Number(params.rush) : 0.2
+  const { fast, same, rush } = voterRules(params)
 
   const supabase = await createClient({ readOnly: true })
   const {
@@ -80,13 +78,13 @@ export default async function StudyVotersPage({
       <div className="mx-auto w-full max-w-5xl px-6 py-8">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h1 className="text-2xl font-semibold">Suspicious study voters</h1>
-          <Link href="/flavor-scorecard" className="text-sm text-[rgb(var(--accent-strong))] hover:underline">
-            ← Flavor scorecard
+          <Link href={`/flavor-scorecard?fast=${fast}&rush=${rush}&same=${same}`} className="text-sm text-[rgb(var(--accent-strong))] hover:underline">
+            See each flavor without them on the scorecard →
           </Link>
         </div>
         <p className="mt-1 text-sm text-[rgb(var(--muted))]">
-          Finds humor-study voters whose votes look careless, and shows how much they change each flavor&apos;s result. Voters with 30+
-          study votes are checked.
+          Humor-study voters whose votes look careless. The Flavor scorecard shows each flavor&apos;s 👍 rate with and without them, using
+          the rules set here. Voters with 30+ study votes are checked.
         </p>
 
         <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
@@ -154,47 +152,6 @@ export default async function StudyVotersPage({
                   <p className="text-xs text-[rgb(var(--muted))]">{sub}</p>
                 </div>
               ))}
-            </div>
-
-            <h2 className="mt-8 text-lg font-semibold">
-              How each flavor&apos;s 👍 rate changes when flagged voters are removed
-              <InfoTip text="👍 rate = share of study votes that were &quot;funny&quot; or &quot;very funny&quot;. Before counts every voter; after leaves out the flagged ones. Change: 35% → 29% means 6 fewer likes for every 100 votes. A rate can go up when the flagged voters had been disliking that flavor. Flavors with 200+ study votes, biggest change first." />
-            </h2>
-            <div className={box}>
-              <table className="w-full min-w-[560px] text-left text-sm">
-                <thead className="border-b border-[rgb(var(--gloss)/0.6)] text-xs text-[rgb(var(--muted))] dark:border-[rgb(var(--gloss)/0.15)]">
-                  <tr>
-                    <th className={th}>Flavor</th>
-                    <th className={th}>👍 rate before</th>
-                    <th className={th}>👍 rate after removing flagged voters</th>
-                    <th className={th}>Change</th>
-                    <th className={th}>Votes kept</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {r.flavors.map((f) => {
-                    // Difference of the two rounded rates shown, so 56% → 57% reads +1
-                    const change = f.clean_rate == null ? null : Math.round(Number(f.clean_rate) * 100) - Math.round(Number(f.rate) * 100)
-                    return (
-                      <tr key={f.flavor_id} className={row}>
-                        <td className="px-4 py-2.5">
-                          <Link href={`/humor-flavor/${f.flavor_id}`} className="font-medium hover:text-[rgb(var(--accent-strong))] hover:underline">
-                            {f.slug}
-                          </Link>
-                        </td>
-                        <td className={td}>{pct(f.rate)}</td>
-                        <td className={`${td} font-semibold`}>{pct(f.clean_rate)}</td>
-                        <td className={`${td} ${change && change < 0 ? 'text-red-700 dark:text-red-300' : change && change > 0 ? 'text-emerald-700 dark:text-emerald-300' : ''}`}>
-                          {change == null ? '–' : change === 0 ? 'No change' : `${Math.abs(change)} ${change > 0 ? 'more' : 'fewer'} likes per 100 votes`}
-                        </td>
-                        <td className={`${td} text-[rgb(var(--muted))]`}>
-                          {fmtNumber(f.clean_votes)} of {fmtNumber(f.votes)}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
             </div>
 
             <h2 className="mt-8 text-lg font-semibold">Who was flagged, and why</h2>

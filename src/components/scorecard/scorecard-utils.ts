@@ -13,6 +13,9 @@ export type ScorecardRow = {
   regulars: number
   fans: number
   critics: number
+  clean_votes: number
+  clean_up_rate: number | null
+  flagged_voters: number
 }
 
 export type ScorecardCaption = {
@@ -64,4 +67,23 @@ export function audience(r: { regulars: number; fans: number; critics: number })
   return fans >= critics
     ? { label: 'Mostly fans', className: 'text-emerald-700 dark:text-emerald-300' }
     : { label: 'Mostly critics', className: 'text-red-700 dark:text-red-300' }
+}
+
+// Change between two rates as likes per 100 votes, from the rounded figures shown
+export function likesChange(before: number | null, after: number | null) {
+  if (before == null || after == null) return null
+  const change = Math.round(Number(after) * 100) - Math.round(Number(before) * 100)
+  return {
+    change,
+    text: change === 0 ? 'No change' : `${Math.abs(change)} ${change > 0 ? 'more' : 'fewer'} likes per 100 votes`,
+    className: change < 0 ? 'text-red-700 dark:text-red-300' : change > 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-[rgb(var(--muted))]',
+  }
+}
+
+// Rules for suspicious study voters, shared by the scorecard and the voter page
+export const VOTER_RULES = { fast: [500, 1000, 2000], rush: [0, 0.2, 0.3], same: [0, 0.95, 1] }
+export function voterRules(params: Record<string, string | string[] | undefined>) {
+  const pick = (key: keyof typeof VOTER_RULES, fallback: number) =>
+    VOTER_RULES[key].includes(Number(params[key])) ? Number(params[key]) : fallback
+  return { fast: pick('fast', 1000), rush: pick('rush', 0.2), same: pick('same', 0) }
 }

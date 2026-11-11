@@ -4,14 +4,14 @@ import { redirect } from 'next/navigation'
 import AppHeader from '@/components/app-header'
 import RateBar from '@/components/scorecard/rate-bar'
 import InfoTip from '@/components/scorecard/info-tip'
-import { audience, confidence, fmtDay, fmtNumber, pct, type ScorecardRow } from '@/components/scorecard/scorecard-utils'
+import { audience, confidence, fmtDay, fmtNumber, likesChange, pct, voterRules, type ScorecardRow } from '@/components/scorecard/scorecard-utils'
 import { pageMetadata } from '@/utils/page-metadata'
 import { createClient } from '@/utils/supabase/server'
 
 export const metadata = pageMetadata('Flavor scorecard')
 
 const MIN_OPTIONS = [0, 50, 200, 1000]
-const SORTS = { rate: '👍 rate', votes: 'Most votes', recent: 'Newest' } as const
+const SORTS = { rate: '👍 rate', clean: 'Without suspicious voters', votes: 'Most votes', recent: 'Newest' } as const
 
 // Every flavor ranked by how real voters rated its captions.
 export default async function FlavorScorecardPage({
@@ -22,6 +22,9 @@ export default async function FlavorScorecardPage({
   const params = await searchParams
   const min = MIN_OPTIONS.includes(Number(params.min)) ? Number(params.min) : 200
   const sort = (typeof params.sort === 'string' && params.sort in SORTS ? params.sort : 'rate') as keyof typeof SORTS
+  // Same rules as the Suspicious study voters page, so both pages agree
+  const rules = voterRules(params)
+  const ruleQuery = `fast=${rules.fast}&rush=${rules.rush}&same=${rules.same}`
 
   const supabase = await createClient({ readOnly: true })
   const {
@@ -29,8 +32,8 @@ export default async function FlavorScorecardPage({
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data, error } = await supabase.rpc('flavor_scorecard')
-  const all = ((data ?? []) as ScorecardRow[]).map((r) => ({ ...r, votes: Number(r.votes), up: Number(r.up), up_rate: r.up_rate == null ? null : Number(r.up_rate) }))
+  const { data, error } = await supabase.rpc('flavor_scorecard', { p_fast_ms: rules.fast, p_rush_share: rules.rush, p_same_share: rules.same || 2 })
+  const all = ((data ?? []) as ScorecardRow[]).map((r) => ({ ...r, votes: Number(r.votes), up: Number(r.up), up_rate: r.up_rate == null ? null : Number(r.up_rate), clean_up_rate: r.clean_up_rate == null ? null : Number(r.clean_up_rate) }))
   const totalVotes = all.reduce((n, r) => n + r.votes, 0)
   const average = totalVotes ? all.reduce((n, r) => n + r.up, 0) / totalVotes : null
   const rows = all
@@ -40,6 +43,8 @@ export default async function FlavorScorecardPage({
         ? b.votes - a.votes
         : sort === 'recent'
           ? (b.last_vote ?? '').localeCompare(a.last_vote ?? '')
+          : sort === 'clean'
+            ? (b.clean_up_rate ?? 0) - (a.clean_up_rate ?? 0) || b.votes - a.votes
           : (b.up_rate ?? 0) - (a.up_rate ?? 0) || b.votes - a.votes
     )
   const hidden = all.filter((r) => r.votes > 0).length - rows.length
@@ -54,15 +59,15 @@ export default async function FlavorScorecardPage({
   return (
     <main className="relative flex min-h-screen flex-col">
       <AppHeader />
-      <div className="mx-auto w-full max-w-5xl px-6 py-8">
+      <div className="mx-auto w-full max-w-7xl px-6 py-8">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h1 className="text-2xl font-semibold">Flavor scorecard</h1>
-          <Link href="/study-voters" className="text-sm text-[rgb(var(--accent-strong))] hover:underline">
-            Suspicious study voters →
+          <Link href={`/study-voters?${ruleQuery}`} className="text-sm text-[rgb(var(--accent-strong))] hover:underline">
+            Who counts as a suspicious voter →
           </Link>
         </div>
         <p className="mt-1 text-sm text-[rgb(var(--muted))]">
-          Which humor flavors voters like most. Click a flavor to see its best and worst captions.
+          Which humor flavors voters like most, with and without suspicious voters. Click a flavor to see its best and worst captions.
         </p>
 
         {error ? (
@@ -79,7 +84,7 @@ export default async function FlavorScorecardPage({
             </span>
             <span className={group}>
               {MIN_OPTIONS.map((m) => (
-                <Link key={m} href={`/flavor-scorecard?min=${m}&sort=${sort}`} className={chip(m === min)}>
+                <Link key={m} href={`/flavor-scorecard?min=${m}&sort=${sort}&${ruleQuery}`} className={chip(m === min)}>
                   {m === 0 ? 'Any' : `${m.toLocaleString('en-US')} votes`}
                 </Link>
               ))}
@@ -89,7 +94,7 @@ export default async function FlavorScorecardPage({
             <span className={label}>Sort by</span>
             <span className={group}>
               {(Object.keys(SORTS) as (keyof typeof SORTS)[]).map((s) => (
-                <Link key={s} href={`/flavor-scorecard?min=${min}&sort=${s}`} className={chip(s === sort)}>
+                <Link key={s} href={`/flavor-scorecard?min=${min}&sort=${s}&${ruleQuery}`} className={chip(s === sort)}>
                   {SORTS[s]}
                 </Link>
               ))}
@@ -98,15 +103,20 @@ export default async function FlavorScorecardPage({
         </div>
 
         <div className="mt-4 overflow-x-auto rounded-xl border border-[rgb(var(--gloss)/0.6)] bg-[rgb(var(--panel)/0.6)] dark:border-[rgb(var(--gloss)/0.15)] dark:bg-[rgb(var(--panel)/0.1)]">
-          <table className="w-full min-w-[860px] text-left text-sm">
+          <table className="w-full min-w-[1100px] text-left text-sm">
             <thead className="border-b border-[rgb(var(--gloss)/0.6)] text-xs text-[rgb(var(--muted))] dark:border-[rgb(var(--gloss)/0.15)]">
               <tr>
                 <th className="whitespace-nowrap px-4 py-2 font-medium">#</th>
                 <th className="whitespace-nowrap px-4 py-2 font-medium">Flavor</th>
                 <th className="w-48 whitespace-nowrap px-4 py-2 font-medium">
-                  👍 rate
+                  👍 rate, all voters
                   <InfoTip text={`Share of votes on this flavor's captions that were thumbs up. The black tick is the average across all flavors${average != null ? ` (${pct(average)})` : ''}.`} />
                 </th>
+                <th className="whitespace-nowrap px-4 py-2 font-medium">
+                  Without suspicious voters
+                  <InfoTip text="The 👍 rate after leaving out votes from study voters who voted too fast, rushed part of a study, or voted from a shared browser session. 'Who counts as a suspicious voter' at the top shows them and lets you change the rules." />
+                </th>
+                <th className="whitespace-nowrap px-4 py-2 font-medium">Change</th>
                 <th className="whitespace-nowrap px-4 py-2 font-medium">Votes</th>
                 <th className="whitespace-nowrap px-4 py-2 font-medium">
                   Captions voted
@@ -127,6 +137,7 @@ export default async function FlavorScorecardPage({
               {rows.map((r, i) => {
                 const c = confidence(r.votes)
                 const a = audience(r)
+                const ch = likesChange(r.up_rate, r.clean_up_rate)
                 return (
                   <tr key={r.flavor_id} className="border-b border-[rgb(var(--gloss)/0.4)] last:border-0 dark:border-[rgb(var(--gloss)/0.1)]">
                     <td className="px-4 py-3 tabular-nums text-[rgb(var(--muted))]">{i + 1}</td>
@@ -141,6 +152,8 @@ export default async function FlavorScorecardPage({
                         <RateBar rate={r.up_rate} average={average} />
                       </span>
                     </td>
+                    <td className="px-4 py-3 font-semibold tabular-nums">{pct(r.clean_up_rate)}</td>
+                    <td className={`whitespace-nowrap px-4 py-3 text-xs ${ch?.className ?? ''}`}>{ch?.text ?? '–'}</td>
                     <td className="px-4 py-3 tabular-nums">{fmtNumber(r.votes)}</td>
                     <td className="whitespace-nowrap px-4 py-3 tabular-nums">
                       {fmtNumber(r.voted_captions)} <span className="text-[rgb(var(--muted))]">of {fmtNumber(r.caption_count)}</span>
@@ -160,7 +173,7 @@ export default async function FlavorScorecardPage({
               })}
               {!rows.length && !error ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-[rgb(var(--muted))]">
+                  <td colSpan={10} className="px-4 py-8 text-center text-[rgb(var(--muted))]">
                     No flavor has that many votes. Try a lower minimum.
                   </td>
                 </tr>
