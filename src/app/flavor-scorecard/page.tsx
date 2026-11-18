@@ -73,11 +73,11 @@ export default async function FlavorScorecardPage({
         </p>
         {summary ? (
           <p className="mt-1 text-xs text-[rgb(var(--muted))]">
-            Counting {fmtNumber(summary.counted_votes)} of {fmtNumber(summary.all_votes)} votes, cast {fmtDay(summary.first_vote)} – {fmtDay(summary.last_vote)} (
-            {pct(summary.counted_votes ? summary.spring_votes / summary.counted_votes : null)} from last spring).
+            {fmtNumber(summary.all_votes)} votes, cast {fmtDay(summary.first_vote)} – {fmtDay(summary.last_vote)}, mostly last spring.
+            &quot;Without suspicious voters&quot; also leaves out {fmtNumber(Number(summary.all_votes) - Number(summary.counted_votes))} too-fast votes.
             <InfoTip
               align="left"
-              text={`${fmtNumber(Number(summary.all_votes) - Number(summary.counted_votes))} votes are left out because they came less than 1 second after the same person's previous vote: too fast to have read the caption, and often several in the same second, which looks automated.`}
+              text="A too-fast vote came less than 1 second after the same person's previous vote: too quick to have read the caption, and often several in the same second, which looks automated."
             />
           </p>
         ) : null}
@@ -126,7 +126,7 @@ export default async function FlavorScorecardPage({
                 </th>
                 <th className="whitespace-nowrap px-4 py-2 font-medium">
                   Without suspicious voters
-                  <InfoTip text="The 👍 rate after leaving out votes from study voters who voted too fast, rushed part of a study, or voted from a shared browser session. 'Who counts as a suspicious voter' at the top shows them and lets you change the rules." />
+                  <InfoTip text="The 👍 rate after leaving out suspicious study voters (too fast, rushing, shared session) and every vote cast less than 1 second after the same person's previous vote. 'Who counts as a suspicious voter' at the top shows them and lets you change the rules." />
                 </th>
                 <th className="whitespace-nowrap px-4 py-2 font-medium">
                   Change
@@ -134,7 +134,7 @@ export default async function FlavorScorecardPage({
                 </th>
                 <th className="whitespace-nowrap px-4 py-2 font-medium">
                   Votes
-                  <InfoTip text="Counted votes on this flavor's captions, and how many different people cast them. One person can vote on many of a flavor's captions." />
+                  <InfoTip text="All votes on this flavor's captions, and how many different people cast them. One person can vote on many of a flavor's captions." />
                 </th>
                 <th className="whitespace-nowrap px-4 py-2 font-medium">
                   Captions voted
