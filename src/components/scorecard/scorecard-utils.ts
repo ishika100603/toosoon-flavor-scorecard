@@ -10,6 +10,7 @@ export type ScorecardRow = {
   down: number
   up_rate: number | null
   last_vote: string | null
+  voters: number
   regulars: number
   fans: number
   critics: number

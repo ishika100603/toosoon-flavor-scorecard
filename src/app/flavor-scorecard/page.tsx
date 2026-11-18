@@ -33,6 +33,8 @@ export default async function FlavorScorecardPage({
   if (!user) redirect('/login')
 
   const { data, error } = await supabase.rpc('flavor_scorecard', { p_fast_ms: rules.fast, p_rush_share: rules.rush, p_same_share: rules.same || 2 })
+  const { data: summaryData } = await supabase.rpc('scorecard_summary')
+  const summary = summaryData as { all_votes: number; counted_votes: number; first_vote: string; last_vote: string; spring_votes: number } | null
   const all = ((data ?? []) as ScorecardRow[]).map((r) => ({ ...r, votes: Number(r.votes), up: Number(r.up), up_rate: r.up_rate == null ? null : Number(r.up_rate), clean_up_rate: r.clean_up_rate == null ? null : Number(r.clean_up_rate) }))
   const totalVotes = all.reduce((n, r) => n + r.votes, 0)
   const average = totalVotes ? all.reduce((n, r) => n + r.up, 0) / totalVotes : null
@@ -69,6 +71,16 @@ export default async function FlavorScorecardPage({
         <p className="mt-1 text-sm text-[rgb(var(--muted))]">
           Which humor flavors voters like most, with and without suspicious voters. Click a flavor to see its best and worst captions.
         </p>
+        {summary ? (
+          <p className="mt-1 text-xs text-[rgb(var(--muted))]">
+            Counting {fmtNumber(summary.counted_votes)} of {fmtNumber(summary.all_votes)} votes, cast {fmtDay(summary.first_vote)} – {fmtDay(summary.last_vote)} (
+            {pct(summary.counted_votes ? summary.spring_votes / summary.counted_votes : null)} from last spring).
+            <InfoTip
+              align="left"
+              text={`${fmtNumber(Number(summary.all_votes) - Number(summary.counted_votes))} votes are left out because they came less than 1 second after the same person's previous vote: too fast to have read the caption, and often several in the same second, which looks automated.`}
+            />
+          </p>
+        ) : null}
 
         {error ? (
           <p className="mt-6 rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
@@ -120,7 +132,10 @@ export default async function FlavorScorecardPage({
                   Change
                   <InfoTip text="How much the 👍 rate moves without suspicious voters: 35% → 29% shows as −6%." />
                 </th>
-                <th className="whitespace-nowrap px-4 py-2 font-medium">Votes</th>
+                <th className="whitespace-nowrap px-4 py-2 font-medium">
+                  Votes
+                  <InfoTip text="Counted votes on this flavor's captions, and how many different people cast them. One person can vote on many of a flavor's captions." />
+                </th>
                 <th className="whitespace-nowrap px-4 py-2 font-medium">
                   Captions voted
                   <InfoTip text="How many of the captions this flavor wrote got at least one vote. A flavor can write many more captions than people ever vote on." align="right" />
@@ -157,7 +172,10 @@ export default async function FlavorScorecardPage({
                     </td>
                     <td className="px-4 py-3 font-semibold tabular-nums">{pct(r.clean_up_rate)}</td>
                     <td className={`whitespace-nowrap px-4 py-3 font-semibold tabular-nums ${ch?.className ?? ''}`}>{ch?.text ?? '–'}</td>
-                    <td className="px-4 py-3 tabular-nums">{fmtNumber(r.votes)}</td>
+                    <td className="whitespace-nowrap px-4 py-3 tabular-nums">
+                      {fmtNumber(r.votes)}
+                      <span className="block text-xs text-[rgb(var(--muted))]">{fmtNumber(r.voters)} voters</span>
+                    </td>
                     <td className="whitespace-nowrap px-4 py-3 tabular-nums">
                       {fmtNumber(r.voted_captions)} <span className="text-[rgb(var(--muted))]">of {fmtNumber(r.caption_count)}</span>
                     </td>
